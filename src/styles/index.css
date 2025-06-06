@@ -3,9 +3,9 @@
   --font-heading: "Open Sans", sans-serif;
   --font-title: "Montserrat", sans-serif;
   /* colors */
-  --primary-color: #D3D3D3;
+  --primary-color: #d3d3d3;
   --secondary-color: #006666;
-  --accent-color: #CC5500;
+  --accent-color: #cc5500;
   /* --tertiary-color: #8a470c;
   --light-grey: #d0d0d0;
   --dark-grey: #303030; */
@@ -20,7 +20,6 @@
   margin: 0 auto;
   padding: 0;
   box-sizing: border-box;
-
 }
 
 body {
@@ -58,7 +57,8 @@ p {
   font-size: 36px;
 }
 
-.header-content a, .settings {
+.header-content a,
+.settings {
   margin: 0;
 }
 
@@ -104,7 +104,10 @@ h3 {
   border: 2px solid #000;
 }
 
-.reg-calc, .cooking, .construction, .currency {
+.reg-calc,
+.cooking,
+.construction,
+.currency {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -130,7 +133,11 @@ h3 {
   font-size: 24px;
 }
 
-.first-line, .second-line, .third-line, .fourth-line, .fifth-line {
+.first-line,
+.second-line,
+.third-line,
+.fourth-line,
+.fifth-line {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
@@ -145,10 +152,12 @@ h3 {
   padding: 0.5rem;
   cursor: pointer;
   aspect-ratio: 1/1;
-
 }
 
-.divide, .times, .minus, .plus {
+.divide,
+.times,
+.minus,
+.plus {
   display: grid;
   place-items: center;
   padding: 0.5rem;
