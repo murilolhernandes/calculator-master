@@ -45,15 +45,52 @@ export default class RegularCalculator {
     if (equalsButton) equalsButton.addEventListener("click", () => this.compute());
 
     // Sync typed input with internal state
+    // if (this.displayElement) {
+    //   this.displayElement.addEventListener("input", (e) => {
+    //     const value = e.target.value;
+    //     // Validate input: allow numbers, negative sign, and one decimal point
+    //     if (/^-?\d*\.?\d*$/.test(value)) {
+    //       this.currentNumber = value === "" ? "0" : value;
+    //     } else {
+    //       // Revert to last valid state if invalid input
+    //       this.displayElement.value = this.currentNumber;
+    //     }
+    //   });
+    // }
     if (this.displayElement) {
       this.displayElement.addEventListener("input", (e) => {
-        const value = e.target.value;
-        // Validate input: allow numbers, negative sign, and one decimal point
-        if (/^-?\d*\.?\d*$/.test(value)) {
-          this.currentNumber = value === "" ? "0" : value;
+        const value = e.target.value.trim();
+        // Check if the input contains an operator (e.g., "5+3")
+        const operatorMatch = value.match(/([-+×÷])/); // Match +, −, ×, ÷
+        if (operatorMatch) {
+          const [prevNum, operator, currNum] = value.split(/([-+×÷])/).map(str => str.trim());
+          // Validate numbers
+          if (/^-?\d*\.?\d*$/.test(prevNum) && (currNum === '' || /^-?\d*\.?\d*$/.test(currNum))) {
+            this.previousNumber = prevNum || "0";
+            this.operation = operator;
+            this.currentNumber = currNum || "0";
+          } else {
+            // Invalid format, revert to last valid state
+            this.displayElement.value = this.currentNumber;
+          }
         } else {
-          // Revert to last valid state if invalid input
-          this.displayElement.value = this.currentNumber;
+          // No operator, treat as a single number
+          if (/^-?\d*\.?\d*$/.test(value)) {
+            this.currentNumber = value === "" ? "0" : value;
+            this.previousNumber = "";
+            this.operation = null;
+          } else {
+            // Invalid input, revert to last valid state
+            this.displayElement.value = this.currentNumber;
+          }
+        }
+      });
+
+      // Handle Enter key to compute result
+      this.displayElement.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          this.compute();
         }
       });
     }
