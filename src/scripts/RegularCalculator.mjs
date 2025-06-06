@@ -43,6 +43,20 @@ export default class RegularCalculator {
     // Equals button (=)
     const equalsButton = document.querySelector(".equals");
     if (equalsButton) equalsButton.addEventListener("click", () => this.compute());
+
+    // Sync typed input with internal state
+    if (this.displayElement) {
+      this.displayElement.addEventListener("input", (e) => {
+        const value = e.target.value;
+        // Validate input: allow numbers, negative sign, and one decimal point
+        if (/^-?\d*\.?\d*$/.test(value)) {
+          this.currentNumber = value === "" ? "0" : value;
+        } else {
+          // Revert to last valid state if invalid input
+          this.displayElement.value = this.currentNumber;
+        }
+      });
+    }
   }
 
   clear() {
