@@ -169,6 +169,11 @@ h3 {
   grid-column-start: 2;
 }
 
+#error-message {
+  color: red;
+  display: none;
+}
+
 @media screen and (min-width: 500px) {
   body {
     max-width: 1080px;
