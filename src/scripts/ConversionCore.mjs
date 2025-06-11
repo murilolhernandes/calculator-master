@@ -3,7 +3,7 @@ import {
   findBestIngredientMatch, 
   getIngredientSuggestions,
   VALID_INGREDIENTS_SET 
-} from "./ingredients.mjs";
+} from "./Ingredients.mjs";
 
 export default class ConversionCore {
   #converter;
