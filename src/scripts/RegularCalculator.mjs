@@ -114,10 +114,10 @@ export default class RegularCalculator {
       const nextOpIndex = afterMinus.search(/[-+*x/÷×−]/);
       
       if (nextOpIndex === -1) {
-        // No operator after the minus, it's just a negative number
+        // No operator after the minus, it"s just a negative number
         return [value];
       } else {
-        // There's an operator after, so parse normally by preserve the negative number
+        // There"s an operator after, so parse normally by preserve the negative number
         const negativeNum = value.substring(0, nextOpIndex + 1);
         const rest = value.substring(nextOpIndex + 1);
         const restParts = rest.split(/([-+*x/÷×−])/).map(str => str.trim()).filter(Boolean);
@@ -275,14 +275,74 @@ export default class RegularCalculator {
   }
 
   toggleSign() {
-    if (this.currentNumber.startsWith("-")) {
-      this.currentNumber = this.currentNumber.substring(1);
-    } else if (!this.currentNumber || this.currentNumber === "0") {
-      this.currentNumber = "-";
-    } else {
-      this.currentNumber = `-${this.currentNumber}`;
+    // Case 1: We have an operator but no current number ("100-")
+    // Toggle the operator between + and -
+    if (this.operation && (!this.currentNumber || this.currentNumber === "")) {
+      if (this.operation === "-") {
+        this.operation = "+";
+      } else if (this.operation === "+") {
+        this.operation = "-";
+      }
+      this.updateDisplay();
+      return;
     }
-    this.updateDisplay();
+    
+    // Case 2: We have an operator and current number is just "-" ("100--")
+    // This means user pressed operator, then minus, so toggle the operator instead
+    if (this.operation && this.currentNumber === "-") {
+      if (this.operation === "-") {
+        this.operation = "+";
+        this.currentNumber = "";
+      } else if (this.operation === "+") {
+        this.operation = "-";
+        this.currentNumber = "";
+      }
+      this.updateDisplay();
+      return;
+    }
+    
+    // Case 3: For multiplication and division with a number, allow normal toggle
+    if (this.operation && (this.operation === "*" || this.operation === "/") && this.currentNumber) {
+      if (this.currentNumber.startsWith("-")) {
+        this.currentNumber = this.currentNumber.substring(1);
+      } else {
+        this.currentNumber = `-${this.currentNumber}`;
+      }
+      this.updateDisplay();
+      return;
+    }
+    
+    // Case 4: For addition/subtraction with a number, convert the operation
+    // "100-5" with toggle becomes "100+5" (not "100--5")
+    if (this.operation && (this.operation === "-" || this.operation === "+") && this.currentNumber && this.currentNumber.startsWith("-")) {
+      // Remove the negative from the number and flip operation
+      this.currentNumber = this.currentNumber.substring(1);
+      this.operation = this.operation === "-" ? "+" : "-";
+      this.updateDisplay();
+      return;
+    }
+
+    // Case 5: For addition/subtraction with a positive number
+    // "100+100" → "100-100" and "100-100" → "100+100"
+    if (this.operation && (this.operation === "-" || this.operation === "+") && this.currentNumber && !this.currentNumber.startsWith("-")) {
+      // Flip the operation (don't add negative to avoid double negatives)
+      this.operation = this.operation === "-" ? "+" : "-";
+      this.updateDisplay();
+      return;
+    }
+    
+    // Case 6: No operation yet, just toggle the current number
+    if (!this.operation) {
+      if (this.currentNumber.startsWith("-")) {
+        this.currentNumber = this.currentNumber.substring(1);
+      } else if (!this.currentNumber || this.currentNumber === "0") {
+        this.currentNumber = "-";
+      } else {
+        this.currentNumber = `-${this.currentNumber}`;
+      }
+      this.updateDisplay();
+      return;
+    }
   }
 
   percent() {
