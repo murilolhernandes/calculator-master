@@ -211,7 +211,7 @@ h3 {
   gap: 1.5rem;
 }
 
-#number1 {
+#input-box {
   width: 100%;
   padding: 1rem;
   font-size: 1.5rem;
@@ -222,7 +222,7 @@ h3 {
   text-align: right;
 }
 
-#number1:focus {
+#input-box:focus {
   outline: none;
   border-color: var(--accent-color);
   box-shadow: 0 0 0 2px rgba(204, 85, 0, 0.2);
@@ -264,7 +264,7 @@ h3 {
 .rounded-borders:hover {
   background-color: var(--success-bg);
   border-color: var(--secondary-color);
-  transform: scale(1.05);
+  /* transform: scale(1.05); */
 }
 
 .rounded-borders:active {
@@ -284,7 +284,7 @@ h3 {
   cursor: pointer;
   aspect-ratio: 1/1;
   font-weight: bold;
-  transition: all 0.2s ease;
+  /* transition: all 0.2s ease; */
 }
 
 .divide:hover,

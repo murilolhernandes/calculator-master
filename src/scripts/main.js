@@ -167,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "../partials/calculatorContainer.html",
       "#display-container",
     ).then(() => {
-      const displayElement = qs("#number1");
+      const displayElement = qs("#input-box");
       const errorMessage = qs("#error-message");
       if (displayElement) {
         calculator = new RegularCalculator(displayElement);
@@ -187,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
           "../partials/calculatorContainer.html",
           "#display-container",
         ).then(() => {
-          const displayElement = qs("#number1");
+          const displayElement = qs("#input-box");
           const errorMessage = qs("#error-message");
           if (displayElement) {
             calculator = new RegularCalculator(displayElement);
