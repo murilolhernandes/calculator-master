@@ -11,6 +11,7 @@ export default class RegularCalculator {
     "−": "-",
     "×": "*",
     "÷": "/",
+    "/": "/",
     "-": "-",
     "*": "*",
     "x": "*"
@@ -20,7 +21,7 @@ export default class RegularCalculator {
     "+": "+",
     "-": "−",
     "*": "×",
-    "/": "÷"
+    "/": "/"
   };
 
   setupEventListeners() {
@@ -107,26 +108,42 @@ export default class RegularCalculator {
   }
 
   parseExpression(value) {
-    // Handle negative numbers at the start
-    if (value.startsWith("-")) {
-      // Check if this is a negative number ("-5") or an expression ("-5+3")
-      const afterMinus = value.substring(1);
-      const nextOpIndex = afterMinus.search(/[-+*x/÷×−]/);
+    const parts = [];
+    let current = '';
+    
+    for (let i = 0; i < value.length; i++) {
+      const char = value[i];
       
-      if (nextOpIndex === -1) {
-        // No operator after the minus, it"s just a negative number
-        return [value];
+      // Check if this is an operator (but not a negative sign at start or after operator)
+      if (/[-+*x/÷×−]/.test(char)) {
+        // Check if this minus is part of a negative number
+        if (char === '-' || char === '−') {
+          // It's part of a negative number if:
+          // 1. It's at the start (i === 0)
+          // 2. Previous character was an operator
+          const prevChar = i > 0 ? value[i-1] : '';
+          if (i === 0 || /[-+*x/÷×−]/.test(prevChar)) {
+            current += char;
+            continue;
+          }
+        }
+        
+        // It's an operator
+        if (current) {
+          parts.push(current);
+          current = '';
+        }
+        parts.push(char);
       } else {
-        // There"s an operator after, so parse normally by preserve the negative number
-        const negativeNum = value.substring(0, nextOpIndex + 1);
-        const rest = value.substring(nextOpIndex + 1);
-        const restParts = rest.split(/([-+*x/÷×−])/).map(str => str.trim()).filter(Boolean);
-        return [negativeNum, ...restParts];
+        current += char;
       }
     }
-
-    // Parsing for non-negative starting values
-    return value.split(/([-+*x/÷×−])/).map(str => str.trim()).filter(Boolean);
+    
+    if (current) {
+      parts.push(current);
+    }
+    
+    return parts;
   }
 
   parsePattern(parts) {

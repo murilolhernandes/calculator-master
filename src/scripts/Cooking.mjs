@@ -24,7 +24,7 @@ export default class Cooking {
       });
       console.log(`Response Status: ${response.status}`);
       if (!response.ok) {
-        throw new Error(`API error: ${response.statues} - ${await response.text() || "No details"}`);
+        throw new Error(`API error: ${response.status} - ${await response.text() || "No details"}`);
       }
       const data = await response.json();
       console.log(`API Response: ${JSON.stringify(data, null, 2)}`);

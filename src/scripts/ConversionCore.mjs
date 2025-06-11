@@ -1,9 +1,14 @@
 import Cooking from "./Cooking.mjs";
+import { 
+  findBestIngredientMatch, 
+  getIngredientSuggestions,
+  VALID_INGREDIENTS_SET 
+} from "./ingredients.mjs";
 
 export default class ConversionCore {
   #converter;
-  #cache = new Map(); // In-memory cache for conversions
-  #requestCount = 0; // Track API requests per session
+  #cache = new Map();
+  #requestCount = 0;
 
   constructor(apiKey) {
     this.#converter = new Cooking(apiKey);
@@ -14,44 +19,61 @@ export default class ConversionCore {
   }
 
   parseConvertInput(input) {
-    const match = input.match(/(\d+\.?\d*)\s*(\w+)\s*(\w+)\s*(?:to\s*(\w+))?/i);
+    // More flexible regex to handle multi-word ingredients
+    const match = input.match(/^(\d+\.?\d*)\s+(\w+)\s+(.+?)(?:\s+to\s+(\w+))?$/i);
     if (!match) {
       throw new Error(`Invalid format. Use: "2 cups flour" or "2 cups flour to grams"`);
     }
     return {
       value: match[1],
       unit: match[2],
-      ingredient: match[3],
+      ingredient: match[3].trim(),
       targetUnit: match[4] || null
     };
   }
 
   parseScaleInput(input) {
-    const match = input.match(/(\d+\.?\d*)\s*(\w+)\s*(\w+)\s*for\s*(\d+)\s*servings\s*to\s*(\d+)\s*servings/i);
+    const match = input.match(/^(\d+\.?\d*)\s+(\w+)\s+(.+?)\s+for\s+(\d+)\s+servings?\s+to\s+(\d+)\s+servings?$/i);
     if (!match) {
       throw new Error(`Invalid format. Use: "2 cups flour for 4 servings to 2 servings"`);
     }
     return {
       value: match[1],
       unit: match[2],
-      ingredient: match[3],
+      ingredient: match[3].trim(),
       originalServings: match[4],
       newServings: match[5]
     };
   }
 
   normalizeIngredient(ingredient) {
-    const ingredientMap = {
-      "salt": "sea_salt"
-    };
-    return ingredientMap[ingredient.toLowerCase()] || ingredient.toLowerCase();
+    return findBestIngredientMatch(ingredient);
+  }
+
+  validateIngredient(normalizedIngredient) {
+    if (!VALID_INGREDIENTS_SET.has(normalizedIngredient)) {
+      // Get suggestions for user
+      const suggestions = getIngredientSuggestions(normalizedIngredient.replace(/_/g, " "))
+        .map(s => s.display)
+        .slice(0, 3);
+      
+      if (suggestions.length > 0) {
+        throw new Error(`Unknown ingredient "${normalizedIngredient.replace(/_/g, " ")}". Did you mean: ${suggestions.join(", ")}?`);
+      } else {
+        throw new Error(`Unknown ingredient "${normalizedIngredient.replace(/_/g, " ")}". Try common ingredients like flour, sugar, salt, etc.`);
+      }
+    }
   }
 
   async convertUnit(input) {
     const { value, unit, ingredient, targetUnit } = this.parseConvertInput(input);
     const normalizedUnit = this.normalizeUnit(unit);
     const normalizedIngredient = this.normalizeIngredient(ingredient);
-    const cacheKey = `${value}-${normalizedUnit}-${normalizedIngredient}-${targetUnit || ""}`;
+    
+    // Validate ingredient
+    this.validateIngredient(normalizedIngredient);
+    
+    const cacheKey = `${value}-${normalizedUnit}-${normalizedIngredient}-${targetUnit || ""}`.toLowerCase();
 
     // Check cache first
     if (this.#cache.has(cacheKey)) {
@@ -77,35 +99,22 @@ export default class ConversionCore {
       throw new Error("No valid conversions returned from API");
     }
 
-    // Make API call
+    // Process result
     let result;
     if (targetUnit) {
-      result = conversions[targetUnit.toLowerCase()];
+      const normalizedTargetUnit = this.normalizeUnit(targetUnit);
+      result = conversions[normalizedTargetUnit] || conversions[targetUnit.toLowerCase()];
+      
+      if (result === undefined) {
+        // Check if target unit exists in any form
+        const possibleUnits = Object.keys(conversions);
+        const suggestions = possibleUnits.slice(0, 3).map(u => u.replace(/_/g, " "));
+        throw new Error(`Cannot convert to ${targetUnit}. Available units: ${suggestions.join(", ")}`);
+      }
+      
       console.log(`Targeted Result: ${result}`);
     } else {
       result = conversions;
-    }
-
-    if (result === undefined) {
-      // Fallback conversion for flour
-      if (normalizedIngredient.toLowerCase() === "flour" && normalizedUnit.toLowerCase() === "cups") {
-        const gramsPerCup = 120;
-        if (targetUnit === "fl_oz") {
-          const flOzPerCup = 8.12;
-          result = parseFloat(value) * flOzPerCup;
-        } else {
-          result = parseFloat(value) * gramsPerCup;
-        }
-        console.log(`Fallback Used - Result: ${result}`);
-      } else if (normalizedIngredient === "sea_salt" && normalizedUnit === "teaspoons") {
-        const gramsPerTeaspoon = 6;
-        result = parseFloat(value) * gramsPerTeaspoon;
-        // const conversionRate = 120;
-        // result = parseFloat(value) * conversionRate;
-        console.log(`Fallback Used - Result: ${result}`);
-      } else {
-        throw new Error(`Conversion to ${targetUnit} not supported`);
-      }
     }
 
     // Store in cache and increment request count
@@ -116,33 +125,85 @@ export default class ConversionCore {
 
   normalizeUnit(unit) {
     const unitMap = {
+      // Singular to plural mappings
       "cup": "cups",
       "teaspoon": "teaspoons",
+      "tsp": "teaspoons",
       "tablespoon": "tablespoons",
+      "tbsp": "tablespoons",
       "ounce": "oz",
+      "ounces": "oz",
       "pound": "lbs",
+      "pounds": "lbs",
       "milliliter": "milliliters",
+      "ml": "milliliters",
       "liter": "liters",
+      "l": "liters",
       "gram": "grams",
+      "g": "grams",
       "quart": "quarts",
+      "qt": "quarts",
       "pint": "pints",
-      "fl": "fl_oz"
+      "pt": "pints",
+      "fl oz": "fl_oz",
+      "fluid ounce": "fl_oz",
+      "fluid ounces": "fl_oz"
     };
-    const normalized = unitMap[unit.toLowerCase()];
-    return normalized || (unit.toLowerCase().endsWith("s") || unit.toLowerCase() === "teaspoon" || unit.toLowerCase() === "tablespoon" ? unit.toLowerCase() : unitToLowerCase() + "s");
+    
+    const normalized = unit.toLowerCase().trim();
+    return unitMap[normalized] || normalized;
   }
 
   formatResult(value, unit, ingredient, result, targetUnit) {
+    const readableIngredient = ingredient.replace(/_/g, " ");
+    
     if (typeof result === "object" && result !== null) {
-      return Object.entries(result).map(([unit, value]) => `${parseFloat(value).toFixed(2)} ${unit.replace("_", " ")}`).join(", ");
+      // Format multiple conversions
+      const conversions = Object.entries(result)
+        .map(([unit, value]) => {
+          const readableUnit = unit.replace(/_/g, " ");
+          return `${parseFloat(value).toFixed(2)} ${readableUnit}`;
+        })
+        .join(", ");
+      
+      return `${value} ${unit} ${readableIngredient} = ${conversions}`;
     }
-    return `${value} ${unit} ${ingredient} = ${parseFloat(result).toFixed(2)} ${targetUnit || ""}`;
+    
+    // Single conversion
+    const readableTargetUnit = targetUnit ? targetUnit.replace(/_/g, " ") : "";
+    return `${value} ${unit} ${readableIngredient} = ${parseFloat(result).toFixed(2)} ${readableTargetUnit}`.trim();
   }
 
   scaleRecipe(input) {
     const { value, unit, ingredient, originalServings, newServings } = this.parseScaleInput(input);
+    const normalizedIngredient = this.normalizeIngredient(ingredient);
+    
+    // Validate ingredient
+    this.validateIngredient(normalizedIngredient);
+    
     const scaleFactor = parseInt(newServings) / parseInt(originalServings);
     const newQuantity = (parseFloat(value) * scaleFactor).toFixed(2);
-    return `${value} ${unit} ${ingredient} for ${originalServings} servings = ${newQuantity} ${unit} for ${newServings} servings`;
+    
+    const readableIngredient = normalizedIngredient.replace(/_/g, " ");
+    return `${value} ${unit} ${readableIngredient} for ${originalServings} servings = ${newQuantity} ${unit} for ${newServings} servings`;
+  }
+
+  // New method to get ingredient suggestions for autocomplete
+  getSuggestions(partial) {
+    return getIngredientSuggestions(partial);
+  }
+
+  // Clear cache method
+  clearCache() {
+    this.#cache.clear();
+    console.log("Cache cleared");
+  }
+
+  // Get cache statistics
+  getCacheStats() {
+    return {
+      size: this.#cache.size,
+      entries: Array.from(this.#cache.keys())
+    };
   }
 }
