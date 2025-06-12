@@ -5,17 +5,12 @@ import {
   VALID_INGREDIENTS_SET 
 } from "./Ingredients.mjs";
 
-export default class ConversionCore {
+export default class CookingCore {
   #converter;
   #cache = new Map();
-  #requestCount = 0;
 
   constructor(apiKey) {
     this.#converter = new Cooking(apiKey);
-  }
-
-  getRequestCount() {
-    return this.#requestCount;
   }
 
   parseConvertInput(input) {
@@ -78,7 +73,6 @@ export default class ConversionCore {
     // Check cache first
     if (this.#cache.has(cacheKey)) {
       const result = this.#cache.get(cacheKey);
-      console.log(`Cache Hit - Result: ${result}`);
       return this.formatResult(value, normalizedUnit, normalizedIngredient, result, targetUnit);
     }
 
@@ -86,10 +80,8 @@ export default class ConversionCore {
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
         conversions = await this.#converter.convert(value, normalizedUnit, normalizedIngredient);
-        console.log(`API Conversions Attempt ${attempt}: ${JSON.stringify(conversions, null, 2)}`);
         break;
       } catch (error) {
-        console.error(`API Conversions Attempt ${attempt} failed: ${error.message}`);
         if (attempt === 3) throw error;
         await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
       }
@@ -112,14 +104,12 @@ export default class ConversionCore {
         throw new Error(`Cannot convert to ${targetUnit}. Available units: ${suggestions.join(", ")}`);
       }
       
-      console.log(`Targeted Result: ${result}`);
     } else {
       result = conversions;
     }
 
-    // Store in cache and increment request count
+    // Store in cache
     this.#cache.set(cacheKey, result);
-    this.#requestCount++;
     return this.formatResult(value, normalizedUnit, normalizedIngredient, result, targetUnit);
   }
 
@@ -196,7 +186,6 @@ export default class ConversionCore {
   // Clear cache method
   clearCache() {
     this.#cache.clear();
-    console.log("Cache cleared");
   }
 
   // Get cache statistics

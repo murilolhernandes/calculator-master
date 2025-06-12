@@ -1,9 +1,10 @@
 import { loadCalculatorTemplate, qs } from "./utils.mjs";
 import RegularCalculator from "./RegularCalculator.mjs";
-import ConversionCore from "./ConversionCore.mjs";
+import CookingCore from "./CookingCore.mjs";
+import ConstructionCore from "./ConstructionCore.mjs";
 // import { config } from 'dotenv';
 
-// const API_KEY = process.env.VITE_API_KEY;
+const API_KEY = import.meta.env.VITE_API_KEY;
 
 let calculator = null; // Store the calculator instance
 
@@ -210,9 +211,9 @@ document.addEventListener("DOMContentLoaded", () => {
           "../partials/cookingContainer.html",
           "#display-container",
         ).then(() => {
-          const API_KEY = "e2b94f34d5msh9bcfb55c0627eb3p1af9c1jsnd91212fb853f"; // Move to env var in production
-          const core = new ConversionCore(API_KEY);
-          const DAILY_LIMIT = 100;
+          // const API_KEY = "e2b94f34d5msh9bcfb55c0627eb3p1af9c1jsnd91212fb853f"; // Move to env var in production
+          // const core = new CookingCore(API_KEY);
+          const cooking = new CookingCore(API_KEY);
 
           function displayResult(message, isError = false) {
             const resultDiv = document.getElementById("result");
@@ -229,23 +230,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           }
 
-          function updateRequestCount() {
-            const count = core.getRequestCount();
-            const requestDiv = document.getElementById("request-count");
-            if (requestDiv) {
-              requestDiv.textContent = `API Requests Today: ${count}/${DAILY_LIMIT}`;
-              requestDiv.className = count > 80 ? "warning" : "";
-            } else {
-              console.error("Request count div not found.");
-            }
-          }
-
           async function convertUnit() {
             const input = document.getElementById("input-box")?.value || "";
             try {
-              const result = await core.convertUnit(input);
+              const result = await cooking.convertUnit(input);
               displayResult(result);
-              updateRequestCount();
             } catch (error) {
               displayResult(error.message, true);
             }
@@ -254,9 +243,8 @@ document.addEventListener("DOMContentLoaded", () => {
           function scaleRecipe() {
             const input = document.getElementById("input-box")?.value || "";
             try {
-              const result = core.scaleRecipe(input);
+              const result = cooking.scaleRecipe(input);
               displayResult(result);
-              updateRequestCount();
             } catch (error) {
               displayResult(error.message, true);
             }
@@ -280,7 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
           // Autocomplete
           const inputBox = document.getElementById("input-box");
           if (inputBox) {
-            initializeAutocomplete(inputBox, core);
+            initializeAutocomplete(inputBox, cooking);
           }
         });
       });
@@ -292,7 +280,47 @@ document.addEventListener("DOMContentLoaded", () => {
         loadCalculatorTemplate(
           "../partials/constructionContainer.html",
           "#display-container",
-        );
+        ).then(() => {
+          const construction = new ConstructionCore(API_KEY);
+
+          function displayResult(message, isError = false) {
+            const resultDiv = document.getElementById("result");
+            if (resultDiv) {
+              resultDiv.textContent = message;
+              resultDiv.className = isError ? "error" : "";
+            } else {
+              console.error("Result div not found.");
+            }
+          }
+
+          async function convertUnit() {
+            const value =
+              document.getElementById("construction-value")?.value || "";
+            const fromUnit =
+              document.getElementById("construction-from-unit")?.value || "";
+            const toUnit =
+              document.getElementById("construction-to-unit")?.value || "";
+            try {
+              if (!value || !fromUnit || !toUnit) {
+                displayResult("Please fill all fields", true);
+                return;
+              }
+              const result = await construction.convertUnit(
+                `${value} ${fromUnit} to ${toUnit}`,
+              );
+              displayResult(`${value} ${fromUnit} = ${result} ${toUnit}`);
+            } catch (error) {
+              displayResult(error.message, true);
+            }
+          }
+
+          const convertUnitButton = document.getElementById("convert-unit");
+          if (convertUnitButton) {
+            convertUnitButton.addEventListener("click", convertUnit);
+          } else {
+            console.error("Convert unit button not found.");
+          }
+        });
       });
     }
 
