@@ -2,9 +2,17 @@ import { loadCalculatorTemplate, qs } from "./utils.mjs";
 import RegularCalculator from "./RegularCalculator.mjs";
 import CookingCore from "./CookingCore.mjs";
 import ConversionCore from "./ConversionCore.mjs";
-// import { config } from 'dotenv';
 
 const API_KEY = import.meta.env.VITE_API_KEY;
+
+if (!API_KEY) {
+  console.error(
+    "API Key is not configured. Please set VITE_API_KEY environment variable.",
+  );
+
+  document.body.innerHTML = `<div style="padding: 20px; color: red;">Configuration error: API key is missing. Please contact support.</div>`;
+  throw new Error("API Key is required but not found.");
+}
 
 let calculator = null; // Store the calculator instance
 
@@ -292,8 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
 
           async function convertUnit() {
-            const value =
-              document.getElementById("input-box")?.value || "";
+            const value = document.getElementById("input-box")?.value || "";
             const fromUnit =
               document.getElementById("conversion-from-unit")?.value || "";
             const toUnit =
@@ -303,10 +310,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 displayResult("Please fill all fields", true);
                 return;
               }
-              const result = await conversion.convertUnit(value, fromUnit, toUnit);
+              const result = await conversion.convertUnit(
+                value,
+                fromUnit,
+                toUnit,
+              );
               const formattedValue = parseFloat(value).toLocaleString("en-US");
-              const formattedResult = result.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-              displayResult(`${formattedValue} ${fromUnit} = ${formattedResult} ${toUnit}`);
+              const formattedResult = result.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              });
+              displayResult(
+                `${formattedValue} ${fromUnit} = ${formattedResult} ${toUnit}`,
+              );
             } catch (error) {
               displayResult(error.message, true);
             }
@@ -321,15 +337,5 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
     }
-
-    // const currencyElement = qs(".currency");
-    // if (currencyElement) {
-    //   currencyElement.addEventListener("click", () => {
-    //     loadCalculatorTemplate(
-    //       "../partials/currencyContainer.html",
-    //       "#display-container",
-    //     );
-    //   });
-    // }
   });
 });
