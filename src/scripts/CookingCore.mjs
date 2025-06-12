@@ -27,20 +27,6 @@ export default class CookingCore {
     };
   }
 
-  parseScaleInput(input) {
-    const match = input.match(/^(\d+\.?\d*)\s+(\w+)\s+(.+?)\s+for\s+(\d+)\s+servings?\s+to\s+(\d+)\s+servings?$/i);
-    if (!match) {
-      throw new Error(`Invalid format. Use: "2 cups flour for 4 servings to 2 servings"`);
-    }
-    return {
-      value: match[1],
-      unit: match[2],
-      ingredient: match[3].trim(),
-      originalServings: match[4],
-      newServings: match[5]
-    };
-  }
-
   normalizeIngredient(ingredient) {
     return findBestIngredientMatch(ingredient);
   }
@@ -162,20 +148,6 @@ export default class CookingCore {
     // Single conversion
     const readableTargetUnit = targetUnit ? targetUnit.replace(/_/g, " ") : "";
     return `${value} ${unit} ${readableIngredient} = ${parseFloat(result).toFixed(2)} ${readableTargetUnit}`.trim();
-  }
-
-  scaleRecipe(input) {
-    const { value, unit, ingredient, originalServings, newServings } = this.parseScaleInput(input);
-    const normalizedIngredient = this.normalizeIngredient(ingredient);
-    
-    // Validate ingredient
-    this.validateIngredient(normalizedIngredient);
-    
-    const scaleFactor = parseInt(newServings) / parseInt(originalServings);
-    const newQuantity = (parseFloat(value) * scaleFactor).toFixed(2);
-    
-    const readableIngredient = normalizedIngredient.replace(/_/g, " ");
-    return `${value} ${unit} ${readableIngredient} for ${originalServings} servings = ${newQuantity} ${unit} for ${newServings} servings`;
   }
 
   // New method to get ingredient suggestions for autocomplete

@@ -48,9 +48,6 @@ export default class CalculatorManager {
     this.setupButton(this.SELECTORS.CONVERT_BUTTON, () =>
       this.handleCookingConvert(cooking),
     );
-    this.setupButton(this.SELECTORS.SCALE_BUTTON, () =>
-      this.handleCookingScale(cooking),
-    );
 
     // Initialize autocomplete
     const inputBox = qs(this.SELECTORS.INPUT_BOX);
@@ -71,16 +68,6 @@ export default class CalculatorManager {
     const input = qs(this.SELECTORS.INPUT_BOX)?.value || "";
     try {
       const result = await cooking.convertUnit(input);
-      this.displayResult(result);
-    } catch (error) {
-      this.displayResult(error.message, true);
-    }
-  }
-
-  handleCookingScale(cooking) {
-    const input = qs(this.SELECTORS.INPUT_BOX)?.value || "";
-    try {
-      const result = cooking.scaleRecipe(input);
       this.displayResult(result);
     } catch (error) {
       this.displayResult(error.message, true);

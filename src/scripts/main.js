@@ -17,7 +17,6 @@ const SELECTORS = {
   ERROR_MESSAGE: "#error-message",
   RESULT: "#result",
   CONVERT_BUTTON: "#convert-unit",
-  SCALE_BUTTON: "#scale-recipe",
   FROM_UNIT: "#conversion-from-unit",
   TO_UNIT: "#conversion-to-unit",
 };
@@ -59,8 +58,8 @@ async function initializeApp() {
           // Update active state
           document
             .querySelectorAll(".reg-calc, .cooking, .conversion")
-            .forEach((el) => el.classList.remove("active"));
-          element.classList.add("active");
+            .forEach((el) => el.classList.add("deactivated"));
+          element.classList.remove("deactivated");
 
           // Load calculator
           manager.loadCalculator(tab.type, tab.path);
