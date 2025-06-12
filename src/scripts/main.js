@@ -1,7 +1,7 @@
 import { loadCalculatorTemplate, qs } from "./utils.mjs";
 import RegularCalculator from "./RegularCalculator.mjs";
 import CookingCore from "./CookingCore.mjs";
-import ConstructionCore from "./ConstructionCore.mjs";
+import ConversionCore from "./ConversionCore.mjs";
 // import { config } from 'dotenv';
 
 const API_KEY = import.meta.env.VITE_API_KEY;
@@ -211,8 +211,6 @@ document.addEventListener("DOMContentLoaded", () => {
           "../partials/cookingContainer.html",
           "#display-container",
         ).then(() => {
-          // const API_KEY = "e2b94f34d5msh9bcfb55c0627eb3p1af9c1jsnd91212fb853f"; // Move to env var in production
-          // const core = new CookingCore(API_KEY);
           const cooking = new CookingCore(API_KEY);
 
           function displayResult(message, isError = false) {
@@ -274,14 +272,14 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    const constructionElement = qs(".construction");
-    if (constructionElement) {
-      constructionElement.addEventListener("click", () => {
+    const conversionElement = qs(".conversion");
+    if (conversionElement) {
+      conversionElement.addEventListener("click", () => {
         loadCalculatorTemplate(
-          "../partials/constructionContainer.html",
+          "../partials/conversionContainer.html",
           "#display-container",
         ).then(() => {
-          const construction = new ConstructionCore(API_KEY);
+          const conversion = new ConversionCore(API_KEY);
 
           function displayResult(message, isError = false) {
             const resultDiv = document.getElementById("result");
@@ -295,20 +293,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
           async function convertUnit() {
             const value =
-              document.getElementById("construction-value")?.value || "";
+              document.getElementById("input-box")?.value || "";
             const fromUnit =
-              document.getElementById("construction-from-unit")?.value || "";
+              document.getElementById("conversion-from-unit")?.value || "";
             const toUnit =
-              document.getElementById("construction-to-unit")?.value || "";
+              document.getElementById("conversion-to-unit")?.value || "";
             try {
               if (!value || !fromUnit || !toUnit) {
                 displayResult("Please fill all fields", true);
                 return;
               }
-              const result = await construction.convertUnit(
-                `${value} ${fromUnit} to ${toUnit}`,
-              );
-              displayResult(`${value} ${fromUnit} = ${result} ${toUnit}`);
+              const result = await conversion.convertUnit(value, fromUnit, toUnit);
+              const formattedValue = parseFloat(value).toLocaleString("en-US");
+              const formattedResult = result.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+              displayResult(`${formattedValue} ${fromUnit} = ${formattedResult} ${toUnit}`);
             } catch (error) {
               displayResult(error.message, true);
             }
@@ -324,14 +322,14 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    const currencyElement = qs(".currency");
-    if (currencyElement) {
-      currencyElement.addEventListener("click", () => {
-        loadCalculatorTemplate(
-          "../partials/currencyContainer.html",
-          "#display-container",
-        );
-      });
-    }
+    // const currencyElement = qs(".currency");
+    // if (currencyElement) {
+    //   currencyElement.addEventListener("click", () => {
+    //     loadCalculatorTemplate(
+    //       "../partials/currencyContainer.html",
+    //       "#display-container",
+    //     );
+    //   });
+    // }
   });
 });

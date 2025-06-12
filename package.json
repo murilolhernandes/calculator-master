@@ -33,6 +33,19 @@
     "last 3 safari versions"
   ],
   "dependencies": {
-    "dotenv": "^16.5.0"
-  }
+    "axios": "^1.9.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/murilolhernandes/calculator-master.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/murilolhernandes/calculator-master/issues"
+  },
+  "homepage": "https://github.com/murilolhernandes/calculator-master#readme"
 }

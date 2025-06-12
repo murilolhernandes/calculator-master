@@ -40,11 +40,11 @@ p {
 
 /* Header Styles */
 .header-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  /* display: flex;
+  justify-content: center; */
+  text-align: center;
   padding: 2rem;
-  gap: 2rem;
+  /* gap: 2rem; */
   background-color: var(--light-bg);
   border-bottom: 3px solid var(--secondary-color);
   margin-bottom: 2rem;
@@ -55,8 +55,8 @@ p {
   text-decoration: none;
   color: var(--accent-color);
   font-family: var(--font-title);
-  padding-right: 2rem;
-  border-right: solid 2px var(--secondary-color);
+  /* padding-right: 2rem; */
+  /* border-right: solid 2px var(--secondary-color); */
   font-size: 36px;
   font-weight: 700;
 }
@@ -121,7 +121,7 @@ h3 {
 /* Make tab buttons equal width */
 .reg-calc,
 .cooking,
-.construction,
+.conversion,
 .currency {
   flex: 1 1 0;
   min-width: 0;
@@ -146,13 +146,13 @@ h3 {
 /* Add separator between tabs */
 .reg-calc:not(:last-child),
 .cooking:not(:last-child),
-.construction:not(:last-child) {
+.conversion:not(:last-child) {
   border-right: 1px solid var(--border-color);
 }
 
 .reg-calc:hover,
 .cooking:hover,
-.construction:hover,
+.conversion:hover,
 .currency:hover {
   background-color: var(--success-bg);
   color: var(--secondary-color);
@@ -161,7 +161,7 @@ h3 {
 /* Active tab styling */
 .reg-calc.active,
 .cooking.active,
-.construction.active,
+.conversion.active,
 .currency.active {
   background-color: var(--secondary-color);
   color: white;
@@ -169,7 +169,7 @@ h3 {
 
 .reg-calc.active::after,
 .cooking.active::after,
-.construction.active::after,
+.conversion.active::after,
 .currency.active::after {
   content: "";
   position: absolute;
@@ -315,8 +315,8 @@ h3 {
   background-color: var(--light-bg);
 }
 
-/* Construction Container (placeholder styling) */
-#construction-container {
+/* Conversion Container (placeholder styling) */
+#conversion-container {
   display: flex;
   flex-direction: column;
   padding: 2rem;
@@ -327,12 +327,12 @@ h3 {
   justify-content: center;
 }
 
-#construction-container h2 {
+#conversion-container h2 {
   color: var(--secondary-color);
   margin-bottom: 1rem;
 }
 
-#construction-container p {
+#conversion-container p {
   color: var(--text-secondary);
   font-size: 1.1em;
 }
@@ -411,7 +411,7 @@ h3 {
 
   .reg-calc,
   .cooking,
-  .construction,
+  .conversion,
   .currency {
     font-size: 0.8rem;
     padding: 1rem 0.5rem;
@@ -419,7 +419,7 @@ h3 {
 
   #calculator-container,
   #cooking-container,
-  #construction-container,
+  #conversion-container,
   #currency-container {
     padding: 1rem;
   }
@@ -439,14 +439,14 @@ h3 {
 
   .reg-calc:not(:last-child),
   .cooking:not(:last-child),
-  .construction:not(:last-child) {
+  .conversion:not(:last-child) {
     border-right: none;
     border-bottom: 1px solid var(--border-color);
   }
 
   .reg-calc,
   .cooking,
-  .construction,
+  .conversion,
   .currency {
     width: 100%;
     padding: 1rem 1rem;
@@ -469,11 +469,4 @@ h3 {
   to {
     transform: rotate(360deg);
   }
-}
-
-/* Smooth Transitions */
-* {
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
 }
