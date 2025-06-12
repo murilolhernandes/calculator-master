@@ -319,6 +319,14 @@ h3 {
   background-color: var(--light-bg);
 }
 
+.autocomplete-item {
+  background-color: #fff;
+}
+
+.autocomplete-active {
+  background-color: #e9e9e9;
+}
+
 /* Conversion Container (placeholder styling) */
 #conversion-container {
   display: flex;
@@ -337,28 +345,6 @@ h3 {
 }
 
 #conversion-container p {
-  color: var(--text-secondary);
-  font-size: 1.1em;
-}
-
-/* Currency Container (placeholder styling) */
-#currency-container {
-  display: flex;
-  flex-direction: column;
-  padding: 2rem;
-  gap: 1rem;
-  background-color: var(--light-bg);
-  text-align: center;
-  min-height: 400px;
-  justify-content: center;
-}
-
-#currency-container h2 {
-  color: var(--secondary-color);
-  margin-bottom: 1rem;
-}
-
-#currency-container p {
   color: var(--text-secondary);
   font-size: 1.1em;
 }
