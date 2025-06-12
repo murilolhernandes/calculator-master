@@ -3,124 +3,300 @@ import RegularCalculator from "./RegularCalculator.mjs";
 import CookingCore from "./CookingCore.mjs";
 import ConversionCore from "./ConversionCore.mjs";
 
+// Constants
 const API_KEY = import.meta.env.VITE_API_KEY;
+const PATHS = {
+  DISPLAY: "../partials/calculatorDisplay.html",
+  REGULAR: "../partials/calculatorContainer.html",
+  COOKING: "../partials/cookingContainer.html",
+  CONVERSION: "../partials/conversionContainer.html",
+};
 
+const SELECTORS = {
+  CALCULATOR: "#calculator",
+  DISPLAY_CONTAINER: "#display-container",
+  INPUT_BOX: "#input-box",
+  ERROR_MESSAGE: "#error-message",
+  RESULT: "#result",
+  CONVERT_BUTTON: "#convert-unit",
+  SCALE_BUTTON: "#scale-recipe",
+  FROM_UNIT: "#conversion-from-unit",
+  TO_UNIT: "#conversion-to-unit",
+};
+
+// API Key validation
 if (!API_KEY) {
   console.error(
     "API Key is not configured. Please set VITE_API_KEY environment variable.",
   );
-
-  document.body.innerHTML = `<div style="padding: 20px; color: red;">Configuration error: API key is missing. Please contact support.</div>`;
+  document.body.innerHTML = `
+    <div style="padding: 20px; color: red;">
+      Configuration error: API key is missing. Please contact support.
+    </div>
+  `;
   throw new Error("API Key is required but not found.");
 }
 
-let calculator = null; // Store the calculator instance
+// Calculator Manager
+class CalculatorManager {
+  constructor() {
+    this.currentCalculator = null;
+    this.calculatorTypes = {
+      regular: this.initializeRegularCalculator.bind(this),
+      cooking: this.initializeCookingCalculator.bind(this),
+      conversion: this.initializeConversionCalculator.bind(this),
+    };
+  }
 
-function initializeAutocomplete(inputElement, core) {
-  let currentFocus = -1;
+  async loadCalculator(type, templatePath) {
+    try {
+      await loadCalculatorTemplate(templatePath, SELECTORS.DISPLAY_CONTAINER);
 
-  inputElement.addEventListener("input", function () {
-    const value = this.value;
-    closeAllLists();
-    currentFocus = -1; // Reset focus when input changes
+      if (this.calculatorTypes[type]) {
+        await this.calculatorTypes[type]();
+      }
+    } catch (error) {
+      console.error(`Failed to load ${type} calculator:`, error);
+      this.showError(`Failed to load ${type} calculator`);
+    }
+  }
 
-    if (!value) return false;
+  initializeRegularCalculator() {
+    const displayElement = qs(SELECTORS.INPUT_BOX);
+    const errorMessage = qs(SELECTORS.ERROR_MESSAGE);
 
-    // Extract ingredient part from input
+    if (displayElement) {
+      this.currentCalculator = new RegularCalculator(displayElement);
+      if (errorMessage) errorMessage.style.display = "none";
+    } else if (errorMessage) {
+      errorMessage.style.display = "block";
+    }
+  }
+
+  initializeCookingCalculator() {
+    const cooking = new CookingCore(API_KEY);
+
+    // Setup event handlers
+    this.setupButton(SELECTORS.CONVERT_BUTTON, () =>
+      this.handleCookingConvert(cooking),
+    );
+    this.setupButton(SELECTORS.SCALE_BUTTON, () =>
+      this.handleCookingScale(cooking),
+    );
+
+    // Initialize autocomplete
+    const inputBox = qs(SELECTORS.INPUT_BOX);
+    if (inputBox) {
+      new Autocomplete(inputBox, cooking);
+    }
+  }
+
+  initializeConversionCalculator() {
+    const conversion = new ConversionCore(API_KEY);
+
+    this.setupButton(SELECTORS.CONVERT_BUTTON, () =>
+      this.handleGeneralConvert(conversion),
+    );
+  }
+
+  async handleCookingConvert(cooking) {
+    const input = qs(SELECTORS.INPUT_BOX)?.value || "";
+    try {
+      const result = await cooking.convertUnit(input);
+      this.displayResult(result);
+    } catch (error) {
+      this.displayResult(error.message, true);
+    }
+  }
+
+  handleCookingScale(cooking) {
+    const input = qs(SELECTORS.INPUT_BOX)?.value || "";
+    try {
+      const result = cooking.scaleRecipe(input);
+      this.displayResult(result);
+    } catch (error) {
+      this.displayResult(error.message, true);
+    }
+  }
+
+  async handleGeneralConvert(conversion) {
+    const value = qs(SELECTORS.INPUT_BOX)?.value || "";
+    const fromUnit = qs(SELECTORS.FROM_UNIT)?.value || "";
+    const toUnit = qs(SELECTORS.TO_UNIT)?.value || "";
+
+    try {
+      if (!value || !fromUnit || !toUnit) {
+        this.displayResult("Please fill all fields", true);
+        return;
+      }
+
+      const result = await conversion.convertUnit(value, fromUnit, toUnit);
+      const formattedValue = parseFloat(value).toLocaleString("en-US");
+      const formattedResult = result.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+      this.displayResult(
+        `${formattedValue} ${fromUnit} = ${formattedResult} ${toUnit}`,
+      );
+    } catch (error) {
+      this.displayResult(error.message, true);
+    }
+  }
+
+  displayResult(message, isError = false) {
+    const resultDiv = qs(SELECTORS.RESULT);
+    if (!resultDiv) {
+      console.error("Result div not found.");
+      return;
+    }
+
+    if (typeof message === "string" && message.includes(",") && !isError) {
+      const items = message
+        .split(", ")
+        .map((item) => `<li>${item}</li>`)
+        .join("");
+      resultDiv.innerHTML = `<ul>${items}</ul>`;
+    } else {
+      resultDiv.textContent = message;
+    }
+
+    resultDiv.className = isError ? "error" : "";
+  }
+
+  setupButton(selector, handler) {
+    const button = qs(selector);
+    if (button) {
+      button.addEventListener("click", handler);
+    } else {
+      console.error(`Button ${selector} not found.`);
+    }
+  }
+
+  showError(message) {
+    const errorDiv = qs(SELECTORS.ERROR_MESSAGE);
+    if (errorDiv) {
+      errorDiv.textContent = message;
+      errorDiv.style.display = "block";
+    }
+  }
+}
+
+// Autocomplete Class
+class Autocomplete {
+  constructor(inputElement, core) {
+    this.inputElement = inputElement;
+    this.core = core;
+    this.currentFocus = -1;
+    this.init();
+  }
+
+  init() {
+    this.inputElement.addEventListener("input", this.handleInput.bind(this));
+    this.inputElement.addEventListener(
+      "keydown",
+      this.handleKeydown.bind(this),
+    );
+    document.addEventListener("click", this.handleDocumentClick.bind(this));
+  }
+
+  handleInput() {
+    const value = this.inputElement.value;
+    this.closeAllLists();
+    this.currentFocus = -1;
+
+    if (!value) return;
+
     const match = value.match(/^\d+\.?\d*\s+\w+\s+(.*)$/);
-    if (!match) return false;
+    if (!match || match[1].length < 2) return;
 
     const ingredientPart = match[1];
-    if (ingredientPart.length < 2) return false;
+    const suggestions = this.core.getSuggestions(ingredientPart);
 
-    const suggestions = core.getSuggestions(ingredientPart);
-    if (suggestions.length === 0) return false;
+    if (suggestions.length === 0) return;
 
-    // Create autocomplete div
+    this.createSuggestionList(suggestions, ingredientPart);
+  }
+
+  createSuggestionList(suggestions, ingredientPart) {
     const listDiv = document.createElement("div");
-    listDiv.setAttribute("id", "autocomplete-list");
-    listDiv.setAttribute("class", "autocomplete-items");
-    listDiv.style.position = "absolute";
-    listDiv.style.width = inputElement.offsetWidth + "px";
-    listDiv.style.top =
-      inputElement.offsetTop + inputElement.offsetHeight + "px";
-    listDiv.style.left = inputElement.offsetLeft + "px";
-    listDiv.style.border = "1px solid #d4d4d4";
-    listDiv.style.borderTop = "none";
-    listDiv.style.zIndex = "99";
-    listDiv.style.maxHeight = "200px";
-    listDiv.style.overflowY = "auto";
-    this.parentNode.appendChild(listDiv);
+    listDiv.id = "autocomplete-list";
+    listDiv.className = "autocomplete-items";
+
+    // Position the list
+    const rect = this.inputElement.getBoundingClientRect();
+    listDiv.style.width = `${rect.width}px`;
+    listDiv.style.top = `${rect.bottom}px`;
+    listDiv.style.left = `${rect.left}px`;
+
+    this.inputElement.parentNode.appendChild(listDiv);
 
     suggestions.forEach((suggestion) => {
-      const itemDiv = document.createElement("div");
-      itemDiv.style.padding = "10px";
-      itemDiv.style.cursor = "pointer";
-      itemDiv.style.backgroundColor = "#fff";
-      itemDiv.style.borderBottom = "1px solid #d4d4d4";
-
-      // Store the suggestion data on the element
-      itemDiv.dataset.value = suggestion.display;
-      itemDiv.dataset.ingredientPart = ingredientPart;
-
-      // Highlight matching part
-      const matchIndex = suggestion.display
-        .toLowerCase()
-        .indexOf(ingredientPart.toLowerCase());
-      if (matchIndex >= 0) {
-        itemDiv.innerHTML =
-          suggestion.display.substr(0, matchIndex) +
-          `<strong>${suggestion.display.substr(matchIndex, ingredientPart.length)}</strong>` +
-          suggestion.display.substr(matchIndex + ingredientPart.length);
-      } else {
-        itemDiv.innerHTML = suggestion.display;
-      }
-
-      itemDiv.addEventListener("click", function () {
-        selectItem(this);
-      });
-
-      itemDiv.addEventListener("mouseenter", function () {
-        this.style.backgroundColor = "#e9e9e9";
-      });
-
-      itemDiv.addEventListener("mouseleave", function () {
-        this.style.backgroundColor = "#fff";
-      });
-
+      const itemDiv = this.createSuggestionItem(suggestion, ingredientPart);
       listDiv.appendChild(itemDiv);
     });
-  });
+  }
 
-  // Keyboard navigation
-  inputElement.addEventListener("keydown", function (e) {
-    let items = document.getElementById("autocomplete-list");
-    if (items) items = items.getElementsByTagName("div");
+  createSuggestionItem(suggestion, ingredientPart) {
+    const itemDiv = document.createElement("div");
+    itemDiv.className = "autocomplete-item";
+    itemDiv.dataset.value = suggestion.display;
+    itemDiv.dataset.ingredientPart = ingredientPart;
 
-    if (e.keyCode == 40) {
-      // Arrow DOWN
-      e.preventDefault();
-      currentFocus++;
-      addActive(items);
-    } else if (e.keyCode == 38) {
-      // Arrow UP
-      e.preventDefault();
-      currentFocus--;
-      addActive(items);
-    } else if (e.keyCode == 13) {
-      // Enter
-      e.preventDefault();
-      if (currentFocus > -1 && items) {
-        selectItem(items[currentFocus]);
-      }
-    } else if (e.keyCode == 27) {
-      // Escape
-      closeAllLists();
+    // Highlight matching part
+    const matchIndex = suggestion.display
+      .toLowerCase()
+      .indexOf(ingredientPart.toLowerCase());
+    if (matchIndex >= 0) {
+      const before = suggestion.display.substr(0, matchIndex);
+      const match = suggestion.display.substr(
+        matchIndex,
+        ingredientPart.length,
+      );
+      const after = suggestion.display.substr(
+        matchIndex + ingredientPart.length,
+      );
+      itemDiv.innerHTML = `${before}<strong>${match}</strong>${after}`;
+    } else {
+      itemDiv.textContent = suggestion.display;
     }
-  });
 
-  function selectItem(item) {
-    const value = inputElement.value;
+    itemDiv.addEventListener("click", () => this.selectItem(itemDiv));
+    return itemDiv;
+  }
+
+  handleKeydown(e) {
+    const items = document
+      .getElementById("autocomplete-list")
+      ?.getElementsByTagName("div");
+    if (!items) return;
+
+    switch (e.keyCode) {
+      case 40: // Arrow DOWN
+        e.preventDefault();
+        this.currentFocus++;
+        this.setActive(items);
+        break;
+      case 38: // Arrow UP
+        e.preventDefault();
+        this.currentFocus--;
+        this.setActive(items);
+        break;
+      case 13: // Enter
+        e.preventDefault();
+        if (this.currentFocus > -1) {
+          this.selectItem(items[this.currentFocus]);
+        }
+        break;
+      case 27: // Escape
+        this.closeAllLists();
+        break;
+    }
+  }
+
+  selectItem(item) {
+    const value = this.inputElement.value;
     const ingredientPart = item.dataset.ingredientPart;
     const selectedValue = item.dataset.value;
 
@@ -128,214 +304,83 @@ function initializeAutocomplete(inputElement, core) {
       0,
       value.lastIndexOf(ingredientPart),
     );
-    inputElement.value = beforeIngredient + selectedValue;
-    closeAllLists();
-    inputElement.focus();
+    this.inputElement.value = beforeIngredient + selectedValue;
+    this.closeAllLists();
+    this.inputElement.focus();
   }
 
-  function addActive(items) {
-    if (!items) return false;
-    removeActive(items);
+  setActive(items) {
+    if (!items) return;
 
-    if (currentFocus >= items.length) currentFocus = 0;
-    if (currentFocus < 0) currentFocus = items.length - 1;
+    // Remove active class from all items
+    Array.from(items).forEach((item) =>
+      item.classList.remove("autocomplete-active"),
+    );
 
-    items[currentFocus].style.backgroundColor = "#e9e9e9";
-    items[currentFocus].classList.add("autocomplete-active");
+    // Wrap around
+    if (this.currentFocus >= items.length) this.currentFocus = 0;
+    if (this.currentFocus < 0) this.currentFocus = items.length - 1;
+
+    // Add active class to current item
+    items[this.currentFocus].classList.add("autocomplete-active");
   }
 
-  function removeActive(items) {
-    for (let i = 0; i < items.length; i++) {
-      items[i].style.backgroundColor = "#fff";
-      items[i].classList.remove("autocomplete-active");
-    }
-  }
-
-  function closeAllLists(elmnt) {
+  closeAllLists(except) {
     const items = document.getElementsByClassName("autocomplete-items");
-    for (let i = 0; i < items.length; i++) {
-      if (elmnt != items[i] && elmnt != inputElement) {
-        items[i].parentNode.removeChild(items[i]);
-      }
-    }
-  }
-
-  document.addEventListener("click", function (e) {
-    closeAllLists(e.target);
-  });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  //Load the category selector
-  loadCalculatorTemplate(
-    "../partials/calculatorDisplay.html",
-    "#calculator",
-  ).then(() => {
-    // Load the calculator keypad and initialize RegularCalculator
-    loadCalculatorTemplate(
-      "../partials/calculatorContainer.html",
-      "#display-container",
-    ).then(() => {
-      const displayElement = qs("#input-box");
-      const errorMessage = qs("#error-message");
-      if (displayElement) {
-        calculator = new RegularCalculator(displayElement);
-        if (errorMessage) errorMessage.style.display = "none";
-      } else {
-        if (errorMessage) {
-          errorMessage.style.display = "block";
-        }
+    Array.from(items).forEach((item) => {
+      if (item !== except && item !== this.inputElement) {
+        item.remove();
       }
     });
+  }
 
-    // Event listeners for category switching
-    const regCalcElement = qs(".reg-calc");
-    if (regCalcElement) {
-      regCalcElement.addEventListener("click", () => {
-        loadCalculatorTemplate(
-          "../partials/calculatorContainer.html",
-          "#display-container",
-        ).then(() => {
-          const displayElement = qs("#input-box");
-          const errorMessage = qs("#error-message");
-          if (displayElement) {
-            calculator = new RegularCalculator(displayElement);
-            if (errorMessage) errorMessage.style.display = "none";
-          } else {
-            if (errorMessage) {
-              errorMessage.style.display = "block";
-            }
-          }
+  handleDocumentClick(e) {
+    this.closeAllLists(e.target);
+  }
+}
+
+// Initialize Application
+async function initializeApp() {
+  try {
+    await loadCalculatorTemplate(PATHS.DISPLAY, SELECTORS.CALCULATOR);
+
+    const manager = new CalculatorManager();
+
+    // Load default calculator
+    await manager.loadCalculator("regular", PATHS.REGULAR);
+
+    // // Set the calculator tab as active by default
+    // const regCalcTab = qs(".reg-calc");
+    // if (regCalcTab) {
+    //   regCalcTab.classList.add("active");
+    // }
+
+    // Setup tab navigation
+    const tabs = [
+      { selector: ".reg-calc", type: "regular", path: PATHS.REGULAR },
+      { selector: ".cooking", type: "cooking", path: PATHS.COOKING },
+      { selector: ".conversion", type: "conversion", path: PATHS.CONVERSION },
+    ];
+
+    tabs.forEach((tab) => {
+      const element = qs(tab.selector);
+      if (element) {
+        element.addEventListener("click", () => {
+          // Update active state
+          document
+            .querySelectorAll(".reg-calc, .cooking, .conversion")
+            .forEach((el) => el.classList.remove("active"));
+          element.classList.add("active");
+
+          // Load calculator
+          manager.loadCalculator(tab.type, tab.path);
         });
-      });
-    } else {
-      console.error("Element with class 'reg-calc' not found.");
-    }
+      }
+    });
+  } catch (error) {
+    console.error(`Failed to initialize app: ${error}`);
+  }
+}
 
-    const cookingElement = qs(".cooking");
-    if (cookingElement) {
-      cookingElement.addEventListener("click", () => {
-        loadCalculatorTemplate(
-          "../partials/cookingContainer.html",
-          "#display-container",
-        ).then(() => {
-          const cooking = new CookingCore(API_KEY);
-
-          function displayResult(message, isError = false) {
-            const resultDiv = document.getElementById("result");
-            if (resultDiv) {
-              if (typeof message === "string" && message.includes(",")) {
-                // Multi-unit response: format as a list or keep as is
-                resultDiv.innerHTML = `<ul><li>${message.split(", ").join("</li><li>")}</li></ul>`;
-              } else {
-                resultDiv.textContent = message;
-              }
-              resultDiv.className = isError ? "error" : "";
-            } else {
-              console.error("Result div not found.");
-            }
-          }
-
-          async function convertUnit() {
-            const input = document.getElementById("input-box")?.value || "";
-            try {
-              const result = await cooking.convertUnit(input);
-              displayResult(result);
-            } catch (error) {
-              displayResult(error.message, true);
-            }
-          }
-
-          function scaleRecipe() {
-            const input = document.getElementById("input-box")?.value || "";
-            try {
-              const result = cooking.scaleRecipe(input);
-              displayResult(result);
-            } catch (error) {
-              displayResult(error.message, true);
-            }
-          }
-
-          // Add event listeners for buttons
-          const convertUnitButton = document.getElementById("convert-unit");
-          if (convertUnitButton) {
-            convertUnitButton.addEventListener("click", convertUnit);
-          } else {
-            console.error("Convert unit button not found.");
-          }
-
-          const scaleRecipeButton = document.getElementById("scale-recipe");
-          if (scaleRecipeButton) {
-            scaleRecipeButton.addEventListener("click", scaleRecipe);
-          } else {
-            console.error("Scale recipe button not found.");
-          }
-
-          // Autocomplete
-          const inputBox = document.getElementById("input-box");
-          if (inputBox) {
-            initializeAutocomplete(inputBox, cooking);
-          }
-        });
-      });
-    }
-
-    const conversionElement = qs(".conversion");
-    if (conversionElement) {
-      conversionElement.addEventListener("click", () => {
-        loadCalculatorTemplate(
-          "../partials/conversionContainer.html",
-          "#display-container",
-        ).then(() => {
-          const conversion = new ConversionCore(API_KEY);
-
-          function displayResult(message, isError = false) {
-            const resultDiv = document.getElementById("result");
-            if (resultDiv) {
-              resultDiv.textContent = message;
-              resultDiv.className = isError ? "error" : "";
-            } else {
-              console.error("Result div not found.");
-            }
-          }
-
-          async function convertUnit() {
-            const value = document.getElementById("input-box")?.value || "";
-            const fromUnit =
-              document.getElementById("conversion-from-unit")?.value || "";
-            const toUnit =
-              document.getElementById("conversion-to-unit")?.value || "";
-            try {
-              if (!value || !fromUnit || !toUnit) {
-                displayResult("Please fill all fields", true);
-                return;
-              }
-              const result = await conversion.convertUnit(
-                value,
-                fromUnit,
-                toUnit,
-              );
-              const formattedValue = parseFloat(value).toLocaleString("en-US");
-              const formattedResult = result.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              });
-              displayResult(
-                `${formattedValue} ${fromUnit} = ${formattedResult} ${toUnit}`,
-              );
-            } catch (error) {
-              displayResult(error.message, true);
-            }
-          }
-
-          const convertUnitButton = document.getElementById("convert-unit");
-          if (convertUnitButton) {
-            convertUnitButton.addEventListener("click", convertUnit);
-          } else {
-            console.error("Convert unit button not found.");
-          }
-        });
-      });
-    }
-  });
-});
+// Start the application
+document.addEventListener("DOMContentLoaded", initializeApp);

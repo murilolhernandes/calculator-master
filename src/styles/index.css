@@ -159,12 +159,16 @@ h3 {
 }
 
 /* Active tab styling */
-.reg-calc.active,
-.cooking.active,
-.conversion.active,
-.currency.active {
+.active {
   background-color: var(--secondary-color);
+}
+
+.active h3 {
   color: white;
+}
+
+.active:hover {
+  background-color: var(--secondary-color);
 }
 
 .reg-calc.active::after,
