@@ -318,6 +318,8 @@ select {
   background-color: white;
   font-family: "Roboto", sans-serif;
   border: 1px solid var(--secondary-color);
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 select:focus {
