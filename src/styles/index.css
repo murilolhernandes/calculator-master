@@ -3,17 +3,28 @@
   --font-heading: "Open Sans", sans-serif;
   --font-title: "Montserrat", sans-serif;
   /* colors */
-  --primary-color: #f5f5f5; /* Light gray background */
-  --secondary-color: #006666; /* Teal */
-  --accent-color: #cc5500; /* Orange */
-  --light-bg: #ffffff; /* White */
-  --medium-bg: #f9f9f9; /* Very light gray */
-  --border-color: #ddd; /* Light border */
-  --text-primary: #333; /* Dark text */
-  --text-secondary: #666; /* Medium text */
-  --success-bg: #e8f4f4; /* Light teal */
-  --warning-bg: #fff9e6; /* Light yellow */
-  --error-bg: #fee; /* Light red */
+  --primary-color: #f5f5f5;
+  /* Light gray background */
+  --secondary-color: #006666;
+  /* Teal */
+  --accent-color: #cc5500;
+  /* Orange */
+  --light-bg: #ffffff;
+  /* White */
+  --medium-bg: #f9f9f9;
+  /* Very light gray */
+  --border-color: #ddd;
+  /* Light border */
+  --text-primary: #333;
+  /* Dark text */
+  --text-secondary: #666;
+  /* Medium text */
+  --success-bg: #e8f4f4;
+  /* Light teal */
+  --warning-bg: #fff9e6;
+  /* Light yellow */
+  --error-bg: #fee;
+  /* Light red */
 
   /* sizes */
   --font-base: 18px;
@@ -35,16 +46,14 @@ body {
 }
 
 p {
-  padding: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  font-size: 18px;
 }
 
 /* Header Styles */
 .header-content {
-  /* display: flex;
-  justify-content: center; */
   text-align: center;
   padding: 2rem;
-  /* gap: 2rem; */
   background-color: var(--light-bg);
   border-bottom: 3px solid var(--secondary-color);
   margin-bottom: 2rem;
@@ -55,8 +64,6 @@ p {
   text-decoration: none;
   color: var(--accent-color);
   font-family: var(--font-title);
-  /* padding-right: 2rem; */
-  /* border-right: solid 2px var(--secondary-color); */
   font-size: 36px;
   font-weight: 700;
 }
@@ -70,17 +77,18 @@ p {
 main {
   display: flex;
   flex-direction: column;
-  /* justify-content: center; */
-  /* align-items: center; */
   gap: 0;
   padding-bottom: 2rem;
+}
+
+.welcome h2 {
+  margin-bottom: 0.5rem;
 }
 
 h2 {
   color: var(--secondary-color);
   font-family: var(--font-heading);
   text-align: center;
-  margin-bottom: 0.5rem;
 }
 
 h3 {
@@ -93,18 +101,9 @@ h3 {
 /* Calculator Type Selector Tabs */
 .options {
   display: flex;
-  /* justify-content: center; */
-  /* align-items: stretch; */
-  /* background-color: var(--light-bg); */
   border-radius: 8px 8px 0 0;
-  /* overflow: visible; */
-  /* width: 100%; */
   margin: 0;
   padding: 0;
-  /* border: 1px solid var(--border-color); */
-  /* border-bottom: none; */
-  /* box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1); */
-  /* box-sizing: border-box; */
 }
 
 /* Make tab buttons equal width */
@@ -116,24 +115,11 @@ h3 {
   min-width: 0;
   margin: 0;
   padding: 1rem;
-  /* background-color: var(--light-bg); */
-  /* border: none; */
   cursor: pointer;
   font-family: var(--font-heading);
   color: var(--secondary-color);
-  /* color: white; */
   font-weight: 600;
-  /* transition: all 0.3s ease; */
-  /* position: relative; */
-  /* text-align: center; */
-  /* white-space: nowrap; */
   font-size: 0.85rem;
-  /* background-color: var(--secondary-color); */
-
-  /* overflow: hidden; */
-  /* text-overflow: ellipsis; */
-  /* box-sizing: border-box; */
-  /* border-radius: 8px 0 0 0; */
 }
 
 /* Add separator between tabs */
@@ -142,13 +128,6 @@ h3 {
 .conversion:not(:last-child) {
   border-right: 1px solid var(--border-color);
 }
-
-/* .reg-calc:hover,
-.cooking:hover,
-.conversion:hover,
-.currency:hover {
-  background-color: var(--secondary-color);
-} */
 
 /* Active tab styling */
 .deactivated {
@@ -167,18 +146,13 @@ h3 {
   color: var(--secondary-color);
 }
 
-/* .reg-calc.active::after,
-.cooking.active::after,
-.conversion.active::after,
-.currency.active::after {
-  content: "";
-  position: absolute;
-  bottom: -3px;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background-color: var(--accent-color);
-} */
+.conversion.deactivated {
+  border-radius: 0 8px 0 0;
+}
+
+.reg-calc.deactivated {
+  border-radius: 8px 0 0 0;
+}
 
 /* Calculator Display Area */
 #calculator-display {
@@ -188,24 +162,14 @@ h3 {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--border-color);
-  /* width: 100%; */
-  /* max-width: 450px;
-  min-width: 450px; */
   margin: 0;
-  min-height: 620px;
-  /* padding-top: 16px; */
 }
 
 #display-container {
   margin: 0;
   padding: 0;
-  /* background-color: var(--light-bg); */
-  /* border-radius: 0 0 8px 8px; */
-  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); */
   border-top: 1px solid var(--border-color);
-  /* min-height: 400px; */
-  /* width: 100%; */
-  /* box-sizing: border-box; */
+  min-height: 693px;
   max-width: 450px;
   min-width: 450px;
 }
@@ -215,8 +179,7 @@ h3 {
   display: flex;
   flex-direction: column;
   padding: 2rem;
-  gap: 1.5rem;
-  max-height: 620px;
+  gap: 2rem;
 }
 
 #input-box {
@@ -228,7 +191,8 @@ h3 {
   border-radius: 4px;
   background-color: var(--medium-bg);
   text-align: right;
-  border-radius: 8px;;
+  border-radius: 8px;
+  ;
 }
 
 #input-box:focus {
@@ -273,7 +237,6 @@ h3 {
 .rounded-borders:hover {
   background-color: var(--success-bg);
   border-color: var(--secondary-color);
-  /* transform: scale(1.05); */
 }
 
 .rounded-borders:active {
@@ -293,7 +256,6 @@ h3 {
   cursor: pointer;
   aspect-ratio: 1/1;
   font-weight: bold;
-  /* transition: all 0.2s ease; */
 }
 
 .divide:hover,
@@ -321,8 +283,6 @@ h3 {
   flex-direction: column;
   padding: 2rem;
   gap: 1rem;
-  height: 100%;
-  /* background-color: var(--light-bg); */
 }
 
 .autocomplete-item {
@@ -334,25 +294,15 @@ h3 {
 }
 
 /* Conversion Container (placeholder styling) */
-.conversion-container {
+#conversion-container {
   display: flex;
   flex-direction: column;
   padding: 2rem;
   gap: 1rem;
-  /* background-color: var(--light-bg); */
-  text-align: center;
-  /* min-height: 400px; */
-  /* justify-content: center; */
 }
 
-.conversion-container h2 {
+#conversion-container h2 {
   color: var(--secondary-color);
-  margin-bottom: 1rem;
-}
-
-.conversion-container p {
-  color: var(--text-secondary);
-  font-size: 1.1em;
 }
 
 .unit-options {
