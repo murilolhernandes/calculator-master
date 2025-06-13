@@ -194,7 +194,9 @@ h3 {
   text-align: right;
   border-radius: 8px;
   color: var(--text-primary);
-  transition: color 1s ease-in-out, font-size 1s ease-in-out;
+  transition:
+    color 1s ease-in-out,
+    font-size 1s ease-in-out;
 }
 
 #input-box:focus {
@@ -206,7 +208,6 @@ h3 {
 #input-box.transition-effect1 {
   animation: clear 1s ease-in-out;
 }
-
 
 #input-box.transition-effect2 {
   animation: result 1s ease-in-out;
