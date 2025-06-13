@@ -109,8 +109,7 @@ h3 {
 /* Make tab buttons equal width */
 .reg-calc,
 .cooking,
-.conversion,
-.currency {
+.conversion {
   flex: 100%;
   min-width: 0;
   margin: 0;
@@ -163,6 +162,8 @@ h3 {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--border-color);
   margin: 0;
+  max-width: 450px;
+  min-width: 450px;
 }
 
 #display-container {
@@ -170,8 +171,6 @@ h3 {
   padding: 0;
   border-top: 1px solid var(--border-color);
   min-height: 693px;
-  max-width: 450px;
-  min-width: 450px;
 }
 
 /* Regular Calculator Container */
@@ -317,6 +316,7 @@ select {
   height: 30px;
   margin: 0;
   background-color: white;
+  font-family: Roboto, sans-serif;
 }
 
 select:focus {
@@ -369,58 +369,54 @@ select:hover {
 } */
 
 /* Responsive Design */
-@media screen and (min-width: 500px) {
-  body {
-    max-width: 1080px;
-    margin: auto;
-  }
-}
 
 @media screen and (max-width: 500px) {
   .header-content {
-    flex-direction: column;
     padding: 1rem;
   }
 
   .header-content a {
-    border-right: none;
-    border-bottom: 2px solid var(--secondary-color);
-    padding-right: 0;
-    padding-bottom: 1rem;
-    font-size: 28px;
-  }
-
-  /* .options {
-    max-width: 100%;
-    border-radius: 0;
-  } */
-
-  .reg-calc,
-  .cooking,
-  .conversion,
-  .currency {
-    font-size: 0.8rem;
-    padding: 1rem 0.5rem;
+    font-size: 2rem;
   }
 
   #calculator-container,
   #cooking-container,
-  #conversion-container,
-  #currency-container {
+  #conversion-container {
     padding: 1rem;
   }
 
-  #display-container {
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
+  #convert-unit {
+    height: 55px;
+  }
+
+  select {
+    height: 40px;
   }
 }
 
 /* For very small screens, stack the tabs */
-@media screen and (max-width: 400px) {
+@media screen and (max-width: 460px) {
+  #calculator-display {
+    max-width: 400px;
+    min-width: 400px;
+  }
+
   .options {
     flex-direction: column;
+  }
+
+  .reg-calc,
+  .cooking,
+  .conversion {
+    padding: 0.5rem;
+  }
+
+  .reg-calc.deactivated {
+    border-radius: 8px 8px 0 0;
+  }
+
+  .conversion.deactivated {
+    border-radius: 0;
   }
 
   .reg-calc:not(:last-child),
@@ -432,27 +428,14 @@ select:hover {
 
   .reg-calc,
   .cooking,
-  .conversion,
-  .currency {
-    width: 100%;
-    padding: 1rem 1rem;
+  .conversion {
     font-size: 0.9rem;
   }
 }
 
-/* Loading Animation (bonus) */
-.loading {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 3px solid var(--border-color);
-  border-radius: 50%;
-  border-top-color: var(--secondary-color);
-  animation: spin 1s ease-in-out infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+@media screen and (max-width: 405px) {
+  #calculator-display {
+    max-width: 350px;
+    min-width: 350px;
   }
 }
