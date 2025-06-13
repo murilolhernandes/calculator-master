@@ -316,7 +316,8 @@ select {
   height: 30px;
   margin: 0;
   background-color: white;
-  font-family: Roboto, sans-serif;
+  font-family: "Roboto", sans-serif;
+  border: 1px solid var(--secondary-color);
 }
 
 select:focus {
@@ -390,7 +391,8 @@ select:hover {
   }
 
   select {
-    height: 40px;
+    height: 50px;
+    font-size: 0.9rem;
   }
 }
 
