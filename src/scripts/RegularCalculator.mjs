@@ -26,13 +26,43 @@ export default class RegularCalculator {
 
   setupEventListeners() {
     // Button event listeners
-    this.addClickListener(".clear", () => this.clear());
+    this.addClickListener(".clear", () => {
+      const effectClass= "transition-effect1";
+      const spinEffect = "spin-effect";
+      this.displayElement.classList.add(effectClass);
+      const clearButton = document.querySelector(".clear");
+      if (clearButton) {
+        clearButton.classList.add(spinEffect);
+      }
+      setTimeout(() => {
+        this.displayElement.classList.remove(effectClass);
+        if (clearButton) {
+          clearButton.classList.remove(spinEffect);
+        }
+      }, 1000);
+      this.clear()
+    });
     this.addClickListener(".positive-negative", () => this.toggleSign());
     this.addClickListener(".percentage", () => {
       this.percent();
       this.updateDisplay();
     });
-    this.addClickListener(".equals", () => this.compute());
+    this.addClickListener(".equals", () => {
+      const effectClass= "transition-effect2";
+      const flipCass = "flip-effect";
+      this.displayElement.classList.add(effectClass);
+      const equalsButton = document.querySelector(".equals");
+      if (equalsButton) {
+        equalsButton.classList.add(flipCass);
+      }
+      setTimeout(() => {
+        this.displayElement.classList.remove(effectClass);
+        if (equalsButton) {
+          equalsButton.classList.remove(flipCass);
+        }
+      }, 1000);
+      this.compute()
+    });
 
     // Number buttons
     document.querySelectorAll(".digits").forEach(button => {
@@ -109,7 +139,7 @@ export default class RegularCalculator {
 
   parseExpression(value) {
     const parts = [];
-    let current = '';
+    let current = "";
     
     for (let i = 0; i < value.length; i++) {
       const char = value[i];
@@ -117,21 +147,21 @@ export default class RegularCalculator {
       // Check if this is an operator (but not a negative sign at start or after operator)
       if (/[-+*x/÷×−]/.test(char)) {
         // Check if this minus is part of a negative number
-        if (char === '-' || char === '−') {
-          // It's part of a negative number if:
-          // 1. It's at the start (i === 0)
+        if (char === "-" || char === "−") {
+          // It"s part of a negative number if:
+          // 1. It"s at the start (i === 0)
           // 2. Previous character was an operator
-          const prevChar = i > 0 ? value[i-1] : '';
+          const prevChar = i > 0 ? value[i-1] : "";
           if (i === 0 || /[-+*x/÷×−]/.test(prevChar)) {
             current += char;
             continue;
           }
         }
         
-        // It's an operator
+        // It"s an operator
         if (current) {
           parts.push(current);
-          current = '';
+          current = "";
         }
         parts.push(char);
       } else {
@@ -208,6 +238,7 @@ export default class RegularCalculator {
     this.previousNumber = "";
     this.operation = null;
     this.updateDisplay("");
+
   }
 
   updateDisplay(value) {
@@ -342,7 +373,7 @@ export default class RegularCalculator {
     // Case 5: For addition/subtraction with a positive number
     // "100+100" → "100-100" and "100-100" → "100+100"
     if (this.operation && (this.operation === "-" || this.operation === "+") && this.currentNumber && !this.currentNumber.startsWith("-")) {
-      // Flip the operation (don't add negative to avoid double negatives)
+      // Flip the operation (don"t add negative to avoid double negatives)
       this.operation = this.operation === "-" ? "+" : "-";
       this.updateDisplay();
       return;
