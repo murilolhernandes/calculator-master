@@ -316,11 +316,17 @@ select {
   width: 150px;
   height: 30px;
   margin: 0;
+  background-color: white;
 }
 
 select:focus {
   outline: none;
   border-color: var(--accent-color);
+}
+
+select:hover {
+  border-color: var(--accent-color);
+  cursor: pointer;
 }
 
 #convert-unit {
